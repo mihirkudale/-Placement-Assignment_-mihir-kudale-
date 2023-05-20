@@ -7,17 +7,21 @@ demanding topic in that videos comment section.
 #Ans:
 
 import csv
+import spacy
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
+# Load the English language model in spaCy
+nlp = spacy.load("en_core_web_sm")
+
 # Specify the YouTube video URL
 video_url = "https://youtu.be/cjhlcIOgUy4"
 
 # Path to chromedriver executable
-chromedriver_path = "Natural Language Processing\Question 1\chromedriver.exe"  # Replace with the actual path to your chromedriver executable
+chromedriver_path = r"Natural Language Processing\Question 1\chromedriver.exe"  # Replace with the actual path to your chromedriver executable
 
 # Configure the Chrome service
 service = Service(chromedriver_path)
@@ -41,14 +45,25 @@ while True:
 # Extract the comments from the loaded page
 comments = driver.find_elements(By.CSS_SELECTOR, "#content-text")
 
-# Store the comments in a CSV file
+# Process the comments using spaCy for tokenization and part-of-speech tagging
+processed_comments = []
+for comment in comments:
+    doc = nlp(comment.text)
+    tokens = [token.text for token in doc]
+    pos_tags = [token.pos_ for token in doc]
+    processed_comment = {'Text': comment.text, 'Tokens': tokens, 'POS Tags': pos_tags}
+    processed_comments.append(processed_comment)
+
+# Store the processed comments in a CSV file
 csv_filename = 'youtube_comments.csv'
 with open(csv_filename, 'w', encoding='utf-8', newline='') as csv_file:
-    writer = csv.writer(csv_file)
-    writer.writerow(['Comment'])
-    writer.writerows([[comment.text] for comment in comments])
+    fieldnames = ['Text', 'Tokens', 'POS Tags']
+    writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+    writer.writeheader()
+    for comment in processed_comments:
+        writer.writerow(comment)
 
-print(f"Comments extracted and stored in '{csv_filename}'")
+print(f"Comments extracted and processed using NLP, and stored in '{csv_filename}'")
 
 # Close the web driver
 driver.quit()
