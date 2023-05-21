@@ -7,15 +7,7 @@ Note -
 2. You have to write at least 2 additional test cases in which your program will run successfully and provide an explanation for the same.
 
 Example Output -
-
-dic = {
-"nouns": "count of nouns",
-"pronouns": "count of pronouns",
-"verbs": "count of verbs",
-"adjectives": "count of adjectives"
-}
 """
-
 #Ans:
 
 import re
