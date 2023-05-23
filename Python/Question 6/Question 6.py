@@ -20,7 +20,6 @@ Note - spawn time format is "05:32”, so assume “minute: second” format and
 
 '''
 
-
 # Ans:
 
 import pandas as pd
