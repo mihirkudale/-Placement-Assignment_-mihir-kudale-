@@ -4,7 +4,6 @@ Write a program to download the data from the given API link and then extract th
 proper formatting
 Link - http://api.tvmaze.com/singlesearch/shows?q=westworld&embed=episodes
 Note - Write proper code comments wherever needed for the code understanding
-Sample Data -
 Excepted Output Data Attributes -
 ● id - int url - string
 ● name - string season
@@ -19,6 +18,7 @@ Excepted Output Data Attributes -
 ● medium image link - string
 ● Original image link - string
 """
+
 #Ans:
 
 import requests

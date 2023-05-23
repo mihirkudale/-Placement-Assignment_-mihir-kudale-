@@ -6,7 +6,6 @@ Note -
 1. Write code comments wherever required for code
 2. You have to write at least 2 additional test cases in which your program will run successfully and provide an explanation for the same.
 
-Example Output -
 """
 #Ans:
 

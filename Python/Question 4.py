@@ -8,8 +8,6 @@ Link - https://data.nasa.gov/resource/y77d-th95.json
 
 Note - Write code comments wherever needed for code understanding.
 
-Sample Data -
-
 Excepted Output Data Attributes
 
 ● Name of Earth Meteorite - string id - ID of Earth
@@ -76,5 +74,5 @@ url = "https://data.nasa.gov/resource/y77d-th95.json"
 data = download_data(url)
 
 # Convert and save the data as a CSV file
-convert_to_csv(data, "meteorite_data.csv")
+convert_to_csv(data, "Output.csv")
 
