@@ -6,7 +6,6 @@ demanding topic in that videos comment section
 #Ans:
 
 import requests
-from bs4 import BeautifulSoup
 import pandas as pd
 import re
 import nltk
@@ -20,23 +19,36 @@ from gensim.corpora import Dictionary
 nltk.download('punkt')
 nltk.download('stopwords')
 
-# Function to scrape comments from a YouTube video
-def scrape_youtube_comments(video_url):
-    response = requests.get(video_url)
-    soup = BeautifulSoup(response.text, 'html.parser')
+# Function to fetch comments from a YouTube video using the YouTube Data API
+def fetch_youtube_comments(video_id, api_key):
+    base_url = 'https://www.googleapis.com/youtube/v3/commentThreads'
+    params = {
+        'part': 'snippet',
+        'videoId': video_id,
+        'maxResults': 100,
+        'key': api_key
+    }
 
-    # Find the comments section using the class attribute
-    comments_section = soup.find('ytd-comments', recursive=False)
+    comments = []
+    next_page_token = None
 
-    if comments_section is None:
-        print("Comments section not found.")
-        return []
+    while True:
+        if next_page_token:
+            params['pageToken'] = next_page_token
 
-    # Find the comment elements within the section
-    comments = comments_section.find_all('yt-formatted-string', {'id': 'content-text'})
-    comments_list = [comment.text for comment in comments]
+        response = requests.get(base_url, params=params)
+        data = response.json()
 
-    return comments_list
+        for item in data['items']:
+            comment = item['snippet']['topLevelComment']['snippet']['textOriginal']
+            comments.append(comment)
+
+        if 'nextPageToken' in data:
+            next_page_token = data['nextPageToken']
+        else:
+            break
+
+    return comments
 
 # Function to preprocess the comments
 def preprocess_comments(comments):
@@ -64,8 +76,8 @@ def preprocess_comments(comments):
 
     return processed_comments
 
-# Function to perform topic modeling
-def perform_topic_analysis(comments):
+# Function to calculate the most demanding topic based on comment count
+def find_demanding_topic(comments):
     # Create a dictionary from the comments
     dictionary = Dictionary(comments)
 
@@ -75,39 +87,47 @@ def perform_topic_analysis(comments):
     # Perform LDA topic modeling
     lda_model = models.LdaModel(corpus, num_topics=5, id2word=dictionary, passes=10)
 
-    # Get the dominant topic for each comment
-    topics = []
+    # Calculate comment count for each topic
+    topic_comment_counts = {topic: 0 for topic in range(lda_model.num_topics)}
     for comment in comments:
         topic = lda_model.get_document_topics(dictionary.doc2bow(comment), minimum_probability=0.2)
         dominant_topic = max(topic, key=lambda x: x[1])[0]
-        topics.append(dominant_topic)
+        topic_comment_counts[dominant_topic] += 1
 
-    return topics
+    # Find the most demanding topic based on comment count
+    most_demanding_topic = max(topic_comment_counts, key=topic_comment_counts.get)
 
-# Function to save topics to a CSV file
-def save_topics_to_csv(topics, csv_file):
-    df = pd.DataFrame({'Topic': topics})
+    return most_demanding_topic
+
+# Function to save comments to a CSV file
+def save_comments_to_csv(comments, csv_file):
+    df = pd.DataFrame({'Comment': comments})
     df.to_csv(csv_file, index=False)
-    print('Topics saved to', csv_file)
+    print('Comments saved to', csv_file)
 
-# Specify the YouTube video URL
-video_url = 'https://youtu.be/reUZRyXxUs4'
+# Specify the YouTube video ID and API key
+video_id = 'l37XiBGV3fE'
+api_key = 'AIzaSyBX-766tW46gpkEjuzO65VfwT9JMUfPeE0'
 
-# Scrape comments from the YouTube video
-comments = scrape_youtube_comments(video_url)
+# Fetch comments from the YouTube video
+comments = fetch_youtube_comments(video_id, api_key)
 
-# Preprocess the comments
-preprocessed_comments = preprocess_comments(comments)
+# Check if comments are available
+if len(comments) > 0:
+    # Specify the CSV file path for comments
+    comments_csv_file = 'comments.csv'
 
-# Perform topic analysis if comments are available
-if len(preprocessed_comments) > 0:
-    # Perform topic analysis
-    topics = perform_topic_analysis(preprocessed_comments)
+    # Save comments to a CSV file
+    save_comments_to_csv(comments, comments_csv_file)
 
-    # Specify the CSV file path
-    csv_file = 'topics.csv'
+    # Preprocess the comments
+    preprocessed_comments = preprocess_comments(comments)
 
-    # Save topics to a CSV file
-    save_topics_to_csv(topics, csv_file)
+    # Perform demanding topic analysis if preprocessed comments are available
+    if len(preprocessed_comments) > 0:
+        # Find the most demanding topic based on comment count
+        most_demanding_topic = find_demanding_topic(preprocessed_comments)
+
+        print("Most Demanding Topic (based on comment count):", most_demanding_topic)
 else:
-    print("No comments available for topic analysis.")
+    print("No comments available.")

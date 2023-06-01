@@ -7,6 +7,10 @@ csv file and then you need to find the most repeated word in that pdf.
 import PyPDF2
 import pandas as pd
 import collections
+import spacy
+
+# Load the English language model in spaCy
+nlp = spacy.load('en_core_web_sm')
 
 # Open the PDF file
 pdf_file = open("data.pdf", "rb")
@@ -40,8 +44,11 @@ df = pd.read_csv("data.csv")
 # Concatenate all the text from the CSV into a single string
 all_text = ' '.join(df["Text"])
 
-# Tokenize the text into individual words
-words = all_text.split()
+# Tokenize the text using spaCy
+doc = nlp(all_text)
+
+# Extract the words from the text
+words = [token.text.lower() for token in doc if token.is_alpha]
 
 # Create a Counter object to count the occurrences of each word
 word_counter = collections.Counter(words)
